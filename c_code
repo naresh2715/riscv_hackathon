@@ -1,0 +1,79 @@
+#include <SoftwareSerial.h>
+#include <TinyGPS++.h>
+
+// GPS module connected to Arduino Uno
+#define GPS_RX 4
+#define GPS_TX 3
+
+// GSM module connected to Arduino Uno
+#define GSM_RX 7
+#define GSM_TX 8
+
+// Accelerometer connected to Arduino Uno
+#define ACCEL_PIN A0
+
+// GPS and GSM objects
+SoftwareSerial gpsSerial(GPS_RX, GPS_TX);
+SoftwareSerial gsmSerial(GSM_RX, GSM_TX);
+TinyGPSPlus gps;
+
+// Variables to store GPS data
+float latitude, longitude, speed, heading;
+unsigned long age;
+
+// Variables to store accelerometer data
+int accelValue;
+float accelThreshold = 5.0; // Adjust this value based on your specific requirements
+
+// Function to initialize the GPS and GSM modules
+void setup() {
+ Serial.begin(9600);
+ gpsSerial.begin(9600);
+ gsmSerial.begin(9600);
+
+ // Wait for GPS module to initialize
+ while (!gpsSerial);
+ Serial.println("GPS module initialized");
+
+ // Wait for GSM module to initialize
+ while (!gsmSerial);
+ Serial.println("GSM module initialized");
+}
+
+// Function to read GPS data and check for vehicle accidents
+void loop() {
+ // Read GPS data
+ while (gpsSerial.available() > 0) {
+    gps.encode(gpsSerial.read());
+ }
+
+ // Check if GPS data is valid
+ if (gps.location.isValid()) {
+    latitude = gps.location.lat();
+    longitude = gps.location.lng();
+    speed = gps.speed.kmph();
+    heading = gps.course.deg();
+    age = gps.location.age();
+
+    // Read accelerometer data
+    accelValue = analogRead(ACCEL_PIN);
+
+    // Check if the vehicle has experienced a sudden change in acceleration
+    if (accelValue > accelThreshold) {
+      // Send an SMS alert to the emergency contact
+      gsmSerial.print("AT+CMGF=1\r");
+      delay(1000);
+      gsmSerial.print("AT+CMGS=\"+1234567890\"\r"); // Replace with the emergency contact's phone number
+      delay(1000);
+      gsmSerial.print("Vehicle accident detected at latitude: ");
+      gsmSerial.print(latitude, 6);
+      gsmSerial.print(" longitude: ");
+      gsmSerial.print(longitude, 6);
+      gsmSerial.print(" speed: ");
+      gsmSerial.print(speed);
+      gsmSerial.print(" km/h");
+      gsmSerial.write(0x1A);
+      delay(1000);
+    }
+ }
+}
