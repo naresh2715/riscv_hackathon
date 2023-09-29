@@ -1,1 +1,3 @@
 # riscv_hackathon
+
+The Vehicle Accident Detection System utilizes GPS and GSM technologies to enhance road safety. In this system, a GPS module is employed to continuously track the vehicle's real-time location, while an accelerometer or gyroscope sensor detects abrupt changes in vehicle acceleration, indicative of a potential accident. When a significant impact is detected, the system combines the accident location data from GPS with the impact event information. This information is then transmitted via SMS through a GSM module to pre-configured emergency contacts or a central monitoring system. These instant alerts enable swift response in the event of a vehicular accident, allowing emergency services to reach the accident site
